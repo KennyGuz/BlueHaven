@@ -1,4 +1,6 @@
 <?php
+//Este es un ejemplo
+
 // Composer autoloader
 require_once 'vendor/autoload.php';
 /*Encabezada de las solicitudes*/
