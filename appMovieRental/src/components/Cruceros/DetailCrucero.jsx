@@ -12,14 +12,13 @@ import {
 } from "@mui/material";
 import CruceroService from "../../services/CruceroService";
 import ItinerarioService from "../../services/ItinerarioService";
-import FechasPreciosService from "../../services/FechasPreciosService";
 import Box from "@mui/material/Box";
 
 export function DetailCrucero() {
   const { id } = useParams();
   const [crucero, setCrucero] = useState(null);
   const [itinerario, setItinerario] = useState(null);
-  const [fechasPrecios, setFechasPrecios] = useState(null);
+  const [fechasPrecios, setFechasPrecios] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const BASE_URL = import.meta.env.VITE_BASE_URL + "uploads";
@@ -27,58 +26,35 @@ export function DetailCrucero() {
   useEffect(() => {
     CruceroService.getCruceroById(id)
       .then((response) => {
-        console.log("Respuesta del API:", response.data);
-        const cruceroData = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data;
-        setCrucero(cruceroData);
-        setLoading(false);
+        console.log("🔵 API Crucero:", response.data);
+        setCrucero(Array.isArray(response.data) ? response.data[0] : response.data);
       })
       .catch((error) => {
-        console.error("Error al cargar el crucero:", error);
+        console.error("🔴 Error en Crucero:", error);
         setError(error);
-        setLoading(false);
       });
 
     ItinerarioService.getItinerarioById(id)
       .then((response) => {
-        console.log("Respuesta del API:", response.data);
-        const ItinerarioData = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data;
-        setItinerario(ItinerarioData);
-        setLoading(false);
+        console.log("🔵 API Itinerario:", response.data);
+        setItinerario(response.data);
+        setFechasPrecios(response.data.fechas || []); // ✅ Guardamos las fechas desde Itinerario
       })
       .catch((error) => {
-        console.error("Error al cargar el itinerario:", error);
+        console.error("🔴 Error en Itinerario:", error);
         setError(error);
-        setLoading(false);
-      });
-
-    FechasPreciosService.getFechasPreciosById(id)
-      .then((response) => {
-        console.log("Respuesta del API:", response.data); // Verifica los datos de la respuesta
-        const fechasPreciosData = Array.isArray(response.data) ? response.data : [];
-        console.log("Datos procesados para fechasPrecios:", fechasPreciosData); // Verifica los datos procesados
-        setFechasPrecios(fechasPreciosData);
-        setLoading(false);
       })
-      .catch((error) => {
-        console.error("Error al cargar las fechas y precios:", error);
-        setError(error);
-        setLoading(false);
-      });
+      .finally(() => setLoading(false));
   }, [id]);
 
   if (loading) return <p>Cargando detalles de la reserva...</p>;
   if (error) return <p>Error al cargar la reserva</p>;
   if (!crucero) return <p>No se encontró el crucero</p>;
   if (!itinerario) return <p>No se encontró el itinerario</p>;
-  if (!fechasPrecios) return <p>No se encontró el fechasPrecios</p>;
 
   return (
     <Grid container justifyContent="center" sx={{ p: 3 }}>
-      {crucero ? (
+      {crucero && (
         <Card sx={{ maxWidth: 600, p: 2 }}>
           <Box
             component="img"
@@ -90,7 +66,6 @@ export function DetailCrucero() {
             alt="Crucero"
             src={`${BASE_URL}/${crucero.Foto}`}
           />
-          <Grid size={5}></Grid>
           <CardContent>
             <Typography variant="h5" gutterBottom>
               {crucero?.Nombre || "Nombre no disponible"}
@@ -105,71 +80,77 @@ export function DetailCrucero() {
             </Typography>
 
             <Typography variant="body1">
-              <strong>Descripcion:</strong>{" "}
-              {itinerario?.Descripcion || "No disponible"}
+              <strong>Descripción del Itinerario:</strong> {itinerario?.Descripcion || "No disponible"}
             </Typography>
 
-            <Typography variant="body1">
+            {/* Lista de puertos */}
+            <div>
+              <Typography variant="h6"><strong>Puertos:</strong></Typography>
               <List>
-                <strong>Puertos: </strong>
-                {itinerario.puertos &&
+                {Array.isArray(itinerario?.puertos) && itinerario.puertos.length > 0 ? (
                   itinerario.puertos.map((puerto) => (
                     <ListItem key={puerto.IDPuerto}>
-                      -<ListItemText primary={puerto.NombrePuerto} />
+                      - <ListItemText primary={`${puerto.Nombre_Puerto} (${puerto.Pais_Puerto})`} />
                     </ListItem>
-                  ))}
+                  ))
+                ) : (
+                  <ListItem>
+                    <ListItemText primary="⚠ No hay puertos disponibles en la API." />
+                  </ListItem>
+                )}
               </List>
-            </Typography>
+            </div>
 
-            <Typography>
+            {/* Fechas y habitaciones */}
+            <div>
+              <Typography variant="h6"><strong>Fechas y Habitaciones Disponibles</strong></Typography>
               <List>
-                <strong>Fechas y Precios de Habitaciones</strong>
-
-                {/* Verificar si fechasPrecios es un array antes de hacer el mapeo */}
-                <strong>Fechas de inicio</strong>
                 {Array.isArray(fechasPrecios) && fechasPrecios.length > 0 ? (
-                  fechasPrecios.map((fechas) => (
-                    <ListItem key={fechas.ID}>
-                      -<ListItemText primary={`Fecha de inicio: ${new Date(fechas.FechaInicio).toLocaleDateString()}`} />
-                      <ListItemText primary= {`Fecha de llegada: ${new Date(fechas.FechaLlegada).toLocaleDateString()}`}/>
-                    </ListItem>
-                  ))
-                ) : (
-                  <p>No se encontraron fechas disponibles</p>
-                )}
+                  fechasPrecios.map((fecha) => {
+                    console.log("Fecha recibida:", fecha);
 
-                {/* Precios de habitaciones */}
-                <strong>Precios de Habitaciones</strong>
-                {Array.isArray(fechasPrecios) && fechasPrecios.length > 0 ? (
-                  fechasPrecios.map((fechas) => (
-                    <ListItem key={fechas.ID}>
-                      -<ListItemText
-                        primary={`Habitacion: ${fechas.NombreHabitacion}`}
-                      />
-                      <ListItemText
-                        primary={`Precio por persona: $${fechas.PrecioPorPersona}`}
-                      />
-                    </ListItem>
-                  ))
+                    const fechaInicio = fecha.Fecha_Salida
+                      ? new Date(fecha.Fecha_Salida).toLocaleDateString("es-ES")
+                      : "Fecha no disponible";
+
+                    const fechaRegreso = fecha.Fecha_Regreso && fecha.Fecha_Regreso !== "0000-00-00"
+                      ? new Date(fecha.Fecha_Regreso).toLocaleDateString("es-ES")
+                      : "Fecha no disponible";
+
+                    return (
+                      <List key={`fecha-${fecha.IDFecha}`} sx={{ pl: 2 }}>
+                        <ListItem>
+                          <ListItemText primary={`📅 Fecha de inicio: ${fechaInicio}`} secondary={`Fecha de regreso: ${fechaRegreso}`} />
+                        </ListItem>
+
+                        {Array.isArray(fecha.habitaciones) && fecha.habitaciones.length > 0 ? (
+                          <List sx={{ pl: 4 }}>
+                            {fecha.habitaciones.map((habitacion) => (
+                              <ListItem key={`habitacion-${habitacion.IDHabitacion}`} sx={{ pl: 2 }}>
+                                🛏️ <ListItemText primary={`Habitación: ${habitacion.Habitacion || "No disponible"}`} />
+                                💰 <ListItemText primary={`Precio: $${habitacion.Precio_Habitacion || "No disponible"}`} />
+                              </ListItem>
+                            ))}
+                          </List>
+                        ) : (
+                          <ListItem sx={{ pl: 4 }}>
+                            <ListItemText primary="⚠ No hay habitaciones disponibles para esta fecha." />
+                          </ListItem>
+                        )}
+                      </List>
+                    );
+                  })
                 ) : (
-                  <p>No se encontraron precios de habitaciones disponibles</p>
+                  <Typography variant="body2">No se encontraron fechas disponibles</Typography>
                 )}
               </List>
-            </Typography>
+            </div>
 
-
-            <Button
-              component={Link}
-              to="/crucero"
-              variant="contained"
-              sx={{ mt: 2 }}
-            >
+            <Button component={Link} to="/crucero" variant="contained" sx={{ mt: 2 }}>
               Volver a Reservas
             </Button>
           </CardContent>
         </Card>
-      ) : (
-        <p>Cargando detalles...</p>
       )}
     </Grid>
   );
