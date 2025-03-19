@@ -1,5 +1,6 @@
 <?php
 //Este es un ejemplo
+//Este es otro ejemplo
 
 // Composer autoloader
 require_once 'vendor/autoload.php';
