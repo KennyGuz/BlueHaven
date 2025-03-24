@@ -1,58 +1,76 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // Importar useNavigate
-import { Container, Typography, Box, List, ListItem, ListItemText, Button } from "@mui/material";
-import BarcoService from "../../services/BarcoService";
+import React from 'react';
+import Container from '@mui/material/Container';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import BarcoService from '../../services/BarcoService';
 
 export function DetailBarco() {
   const { id } = useParams();
-  const navigate = useNavigate(); // Hook para la navegación
-  const [barco, setBarco] = useState(null);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(null);
+  const [error, setError] = useState('');
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     BarcoService.getBarcoById(id)
       .then((response) => {
-        setBarco(response.data);
-        setLoading(false);
+        setData(response.data);
+        setError('');
+        setLoaded(true);
       })
       .catch((error) => {
         console.error(error);
         setError(error);
-        setLoading(false);
+        setLoaded(false);
       });
   }, [id]);
 
-  if (loading) return <p>Cargando...</p>;
-  if (error) return <p>Error al cargar el barco</p>;
+  if (!loaded) return <p>Cargando...</p>;
+  if (error) return <p>Error: {error.message}</p>;
 
   return (
-    <Container>
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="h4" gutterBottom>{barco.Nombre}</Typography>
-        <Typography variant="body1">Descripción: {barco.Descripcion}</Typography>
-        <Typography variant="body1">Capacidad: {barco.CapacidadHuespedes} huéspedes</Typography>
-        <Typography variant="body1">Total de Habitaciones: {barco.total_habitaciones}</Typography>
+    <Container component="main" sx={{ mt: 8, mb: 4 }}>
+      {data && (
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <Typography variant="h4" gutterBottom>
+              {data.nombre}
+            </Typography>
+            <Typography variant="body1" gutterBottom>
+              {data.descripcion}
+            </Typography>
+            <Typography variant="subtitle1" gutterBottom>
+              <strong>Capacidad de huéspedes:</strong> {data.capacidadHuespedes}
+            </Typography>
+            <Typography variant="subtitle1" gutterBottom>
+              <strong>Precio:</strong> ${data.precio.toLocaleString()}
+            </Typography>
+          </Grid>
 
-        <Typography variant="h6" sx={{ mt: 3 }}>Habitaciones Disponibles:</Typography>
-        <List>
-          {barco.habitaciones && barco.habitaciones.map((habitacion) => (
-            <ListItem key={habitacion.id}>
-              <ListItemText primary={habitacion.Nombre} secondary={`Tamaño: ${habitacion.Tamano}`} />
-            </ListItem>
-          ))}
-        </List>
+          {/* Lista de habitaciones */}
+          <Grid item xs={12}>
+            <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
+              Habitaciones o camarotes disponibles:
+            </Typography>
 
-        {/* Botón para volver al listado */}
-        <Button 
-          variant="contained" 
-          color="primary" 
-          sx={{ mt: 3 }} 
-          onClick={() => navigate("/barco")} // Volver al listado de barcos
-        >
-          Volver al Listado
-        </Button>
-      </Box>
+            {data.habitaciones && data.habitaciones.length > 0 ? (
+              <ul>
+                {data.habitaciones.map((hab, index) => (
+                  <li key={index}>
+                    {hab.nombre} – {hab.cantidad} habitación(es)
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                No hay habitaciones asociadas a este barco.
+              </Typography>
+            )}
+          </Grid>
+        </Grid>
+      )}
     </Container>
   );
 }

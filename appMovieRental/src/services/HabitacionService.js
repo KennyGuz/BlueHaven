@@ -1,33 +1,36 @@
 import axios from "axios";
 
 // Base URL para la API de habitaciones
-const BASE_URL = "http://localhost:81/BlueHaven/habitaciones"; 
-
+const BASE_URL = import.meta.env.VITE_BASE_URL + 'habitacion';
 
 class HabitacionService {
   // Obtener todas las habitaciones
-  getHabitaciones() {
-    return axios.get(BASE_URL);
-  }
 
-  // Obtener una habitación por ID
-  getHabitacionById(habitacionId) {
-    return axios.get(`${BASE_URL}/${habitacionId}`);
-  }
 
-  // Crear una nueva habitación
-  createHabitacion(habitacion) {
-    return axios.post(BASE_URL, JSON.stringify(habitacion));
-  }
+getHabitaciones() {
+  return axios.get(BASE_URL);
+}
 
-  // Actualizar una habitación existente
-  updateHabitacion(habitacion) {
-    return axios({
-      method: "put",
-      url: BASE_URL,
-      data: JSON.stringify(habitacion),
-    });
-  }
+getHabitacionById(id) {
+  return axios.get(`${BASE_URL}/${id}`);
+}
+
+createHabitacion(data) {
+  return axios.post(BASE_URL, JSON.stringify(data));
+}
+
+updateHabitacion(data) {
+  return axios.put(BASE_URL, JSON.stringify(data));
+}
+
+deleteHabitacion(id) {
+  return axios.delete(`${BASE_URL}/${id}`);
+}
+
+getByNombre(nombre) {
+  return axios.get(`${BASE_URL}/nombre/${nombre}`);
+}
+
 }
 
 export default new HabitacionService();

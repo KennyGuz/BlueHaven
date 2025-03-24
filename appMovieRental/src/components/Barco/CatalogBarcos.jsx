@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import BarcoService from '../../services/BarcoService';
-import { ListCardBarcos } from './ListCardBarcos'; 
+import { ListCardBarcos } from './ListCardBarcos';
 
-export function ListBarcos() {
+export function CatalogBarcos() {
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [loaded, setLoaded] = useState(false);
 
- 
+
   useEffect(() => {
     BarcoService.getBarcos()
       .then((response) => {
@@ -18,13 +18,13 @@ export function ListBarcos() {
       })
       .catch((error) => {
         console.log(error);
-        setError(error);
+        setError(error.message || 'Error desconocido');
         setLoaded(false);
       });
   }, []);
 
   if (!loaded) return <p>Cargando...</p>;
-  if (error) return <p>Error: {error.message}</p>;
+  if (error) return <p>Error: {error}</p>;
 
   return <>{data && <ListCardBarcos data={data} />}</>;
 }

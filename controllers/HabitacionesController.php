@@ -1,90 +1,84 @@
 <?php
-// localhost:81/apimovie/habitaciones
-class Habitaciones
+// localhost:81/BlueHaven/habitacion
+class habitacion
 {
-    // GET - Listar todas las habitaciones
+
+    
     public function index()
     {
         try {
+            $habitacionModel = new HabitacionModel();
             $response = new Response();
-            // Instancia del modelo
-            $habitacionM = new HabitacionModel();
-            // Método del modelo
-            $result = $habitacionM->all();
-            // Dar respuesta en JSON
-            $response->toJSON($result);
+            $data = $habitacionModel->all(); // obtiene habitaciones
+            $response->toJSON($data);
         } catch (Exception $e) {
             handleException($e);
         }
     }
 
-    // GET - Obtener una habitación por ID
     public function get($id)
     {
         try {
             $response = new Response();
-            // Instancia del modelo
-            $habitacion = new HabitacionModel();
-            // Acción del modelo a ejecutar
-            $result = $habitacion->get($id);
-            // Dar respuesta
+            $model = new HabitacionModel();
+            $result = $model->get($id);
             $response->toJSON($result);
         } catch (Exception $e) {
             handleException($e);
         }
     }
-
-    // GET - Obtener habitaciones disponibles según capacidad
-    public function habitacionesPorCapacidad($maxHuespedes)
-    {
-        try {
-            $response = new Response();
-            // Instancia del modelo
-            $habitacion = new HabitacionModel();
-            // Acción del modelo a ejecutar
-            $result = $habitacion->getByCapacity($maxHuespedes);
-            // Dar respuesta
-            $response->toJSON($result);
-        } catch (Exception $e) {
-            handleException($e);
-        }
+// GET /habitacion/nombre/:nombre
+public function getByNombre($nombre)
+{
+    try {
+        $response = new Response();
+        $habitacionModel = new HabitacionModel();
+        $result = $habitacionModel->getByNombre($nombre);
+        $response->toJSON($result);
+    } catch (Exception $e) {
+        handleException($e);
     }
+}
 
-    // POST - Crear una nueva habitación
     public function create()
     {
         try {
             $request = new Request();
             $response = new Response();
-            // Obtener JSON enviado
-            $inputJSON = $request->getJSON();
-            // Instancia del modelo
-            $habitacion = new HabitacionModel();
-            // Acción del modelo a ejecutar
-            $result = $habitacion->create($inputJSON);
-            // Dar respuesta
+            $input = $request->getJSON();
+            $model = new HabitacionModel();
+            $result = $model->create($input);
             $response->toJSON($result);
         } catch (Exception $e) {
             handleException($e);
         }
     }
 
-    // PUT - Actualizar información de una habitación
     public function update()
     {
         try {
             $request = new Request();
             $response = new Response();
-            // Obtener JSON enviado
-            $inputJSON = $request->getJSON();
-            // Instancia del modelo
-            $habitacion = new HabitacionModel();
-            // Acción del modelo a ejecutar
-            $result = $habitacion->update($inputJSON);
-            // Dar respuesta
+            $input = $request->getJSON();
+            $model = new HabitacionModel();
+            $result = $model->update($input);
             $response->toJSON($result);
         } catch (Exception $e) {
             handleException($e);
         }
     }
+
+    public function delete($id)
+    {
+        try {
+            $response = new Response();
+            $habitacion = new HabitacionModel();
+            $result = $habitacion->delete($id);
+            $response->toJSON($result);
+        } catch (Exception $e) {
+            handleException($e);
+        }
+    }
+    
+
 }

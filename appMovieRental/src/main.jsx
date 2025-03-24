@@ -14,10 +14,23 @@ import { DetailReserva } from "./components/Reserva/DetailReserva";
 import { DetailHabitacion } from "./components/Habitacion/DetailHabitaciones";
 
 import TableHabitaciones from "./components/Habitacion/TableHabitaciones";
-import { ListBarcos } from "./components/Barco/ListBarcos";
-import { DetailBarco } from "./components/Barco/DetailBarco";
+
 import { ListCruceros } from "./components/Cruceros/ListCruceros";
 import { DetailCrucero } from "./components/Cruceros/DetailCrucero";
+
+import CreateHabitacion from './components/Habitacion/CreateHabitacion';
+
+
+import UpdateHabitacion from './components/Habitacion/UpdateHabitacion';
+
+
+
+import { ListBarcos } from "./components/Barco/ListBarcos";
+import { DetailBarco } from "./components/Barco/DetailBarco";
+import { CreateBarco } from "./components/Barco/CreateBarco";
+import { UpdateBarco } from "./components/Barco/UpdateBarco";
+import TableBarcos from "./components/Barco/TableBarcos";
+import { CatalogBarcos } from "./components/Barco/CatalogBarcos"; 
 
 const rutas = createBrowserRouter([
   {
@@ -32,6 +45,31 @@ const rutas = createBrowserRouter([
         element: <PageNotFound />,
       },
       {
+        path: '/barco/',
+        element: <ListBarcos />
+      },
+      {
+        path: '/catalog-barcos/',
+        element: <CatalogBarcos />
+      },
+      {
+        path: '/barco/:id',
+        element: <DetailBarco />
+      },
+      {
+        path: '/barco/crear/',
+        element: <CreateBarco />
+      },
+      {
+        path: "/barco/update/:id",
+        element: <UpdateBarco />
+      },
+      
+      {
+        path: '/barco-table',
+        element: <TableBarcos />
+      },
+      {
         path: "/habitacion",
         element: <ListHabitaciones />,
       },
@@ -40,18 +78,19 @@ const rutas = createBrowserRouter([
         element: <DetailHabitacion />, 
       },
       {
+        path: "/habitacion/crear", 
+        element: <CreateHabitacion />,
+      },
+      {
+        path: "/habitacion/update/:id", 
+        element: <UpdateHabitacion />,
+      },
+      {
         path: "/table",
         element: <TableHabitaciones />, 
       },
-      {
-        path: "/barco",
-        element: <ListBarcos />,
-      },
-      {
-        path: "/barco/:id",
-        element: <DetailBarco />,
-      },
-      
+     
+    
     {
   path: "/reservas",
   element: <ListReservas />,

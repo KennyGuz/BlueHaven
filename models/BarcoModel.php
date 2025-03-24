@@ -8,12 +8,23 @@ class BarcoModel
         $this->enlace = new MySqlConnect();
     }
 
-    // Listar todos los barcos
+    /**
+     * Listar todos los barcos
+     */
     public function all()
     {
         try {
-            $vSQL = "SELECT * FROM barcos ORDER BY Nombre ASC;";
+            $vSQL = "SELECT 
+                        ID as id, 
+                        Nombre as nombre, 
+                        Descripcion as descripcion, 
+                        CapacidadHuespedes as capacidadHuespedes, 
+                        Precio as precio 
+                     FROM barcos 
+                     ORDER BY nombre ASC;";
+
             $vResultado = $this->enlace->ExecuteSQL($vSQL);
+
             return $vResultado;
         } catch (Exception $e) {
             handleException($e);
@@ -23,55 +34,134 @@ class BarcoModel
     public function get($id)
     {
         try {
-            $vSQL = "SELECT b.*, 
-                            COALESCE(SUM(hb.Cantidad), 0) AS total_habitaciones 
-                     FROM barcos b
-                     LEFT JOIN habitacionesbarco hb ON b.id = hb.IDBarco
-                     LEFT JOIN habitaciones h ON hb.IDHabitacion = h.id
-                     WHERE b.id = $id
-                     GROUP BY b.id";
+            $sql = "SELECT 
+                        ID as id, 
+                        Nombre as nombre, 
+                        Descripcion as descripcion, 
+                        CapacidadHuespedes as capacidadHuespedes, 
+                        Precio as precio 
+                    FROM barcos 
+                    WHERE ID = $id";
     
-            $barco = $this->enlace->ExecuteSQL($vSQL);
-            
-            if (!empty($barco)) {
-                // Convertimos el objeto stdClass a un array
-                $barco = json_decode(json_encode($barco[0]), true);
+            $res = $this->enlace->ExecuteSQL($sql);
     
-                // Obtener habitaciones asociadas al barco
-                $vSQLHabitaciones = "SELECT h.id, h.Nombre, h.Tamano 
-                                     FROM habitaciones h
-                                     INNER JOIN habitacionesbarco hb ON h.id = hb.IDHabitacion
-                                     WHERE hb.IDBarco = $id";
+            if (!empty($res)) {
+                $barco = $res[0];
     
-                $habitaciones = $this->enlace->ExecuteSQL($vSQLHabitaciones);
-                $barco['habitaciones'] = $habitaciones;
+              
+                $sqlH = "SELECT 
+                            h.ID as id, 
+                            h.Nombre as nombre, 
+                            h.Descripcion as descripcion,
+                            h.MinHuespedes,
+                            h.MaxHuespedes,
+                            h.Tamano,
+                            hb.cantidad 
+                        FROM habitacionesbarco hb 
+                        JOIN habitaciones h ON hb.IDHabitacion = h.ID
+                        WHERE hb.IDBarco = $id";
+    
+                $barco->habitaciones = $this->enlace->ExecuteSQL($sqlH);
+    
+                return $barco;
             }
-            return $barco;
+    
+            return null;
         } catch (Exception $e) {
             handleException($e);
         }
     }
     
     
-    public function getBarcosConHabitaciones()
+    public function update($objeto)
     {
         try {
-            $vSQL = "SELECT b.*, COALESCE(SUM(hb.Cantidad), 0) AS total_habitaciones 
-                     FROM barcos b 
-                     LEFT JOIN habitacionesbarco hb ON b.id = hb.IDBarco 
-                     LEFT JOIN habitaciones h ON hb.IDHabitacion = h.id 
-                     GROUP BY b.id";
+            
+            $sql = "UPDATE barcos SET 
+                        nombre = '$objeto->nombre',
+                        descripcion = '$objeto->descripcion',
+                        capacidadHuespedes = $objeto->capacidadHuespedes,
+                        precio = $objeto->precio
+                    WHERE id = $objeto->id";
+            $this->enlace->executeSQL_DML($sql);
     
-            error_log("SQL Query: " . $vSQL);  
+            
+            $sqlDelete = "DELETE FROM habitacionesbarco WHERE IDBarco = $objeto->id";
+            $this->enlace->executeSQL_DML($sqlDelete);
     
-            $vResultado = $this->enlace->ExecuteSQL($vSQL);
-            return $vResultado;
+           
+            foreach ($objeto->habitaciones as $hab) {
+                $sqlHab = "INSERT INTO habitacionesbarco (IDBarco, IDHabitacion, Cantidad)
+                           VALUES (
+                               $objeto->id,
+                               $hab->habitacion_id,
+                               $hab->cantidad
+                           )";
+                $this->enlace->executeSQL_DML($sqlHab);
+            }
+    
+            return $this->get($objeto->id);
         } catch (Exception $e) {
-            error_log("Error en getBarcosConHabitaciones: " . $e->getMessage());
             handleException($e);
         }
     }
+    
     
     
 
+    /**
+     * Crear un nuevo barco
+     */
+    public function create($objeto)
+    {
+        try {
+            // 1. Insertar barco en tabla 'barcos'
+            $sql = "INSERT INTO barcos (nombre, descripcion, capacidadHuespedes, precio)
+                    VALUES (
+                        '$objeto->nombre',
+                        '$objeto->descripcion',
+                        $objeto->capacidadHuespedes,
+                        $objeto->precio
+                    )";
+    
+            $idBarco = $this->enlace->executeSQL_DML_last($sql); // ID del nuevo barco
+    
+            // 2. Insertar habitaciones en tabla 'habitacionesbarco'
+            foreach ($objeto->habitaciones as $hab) {
+                $sqlHab = "INSERT INTO habitacionesbarco (IDBarco, IDHabitacion, Cantidad)
+                           VALUES (
+                               $idBarco,
+                               $hab->habitacion_id,
+                               $hab->cantidad
+                           )";
+                $this->enlace->executeSQL_DML($sqlHab);
+            }
+    
+           
+            return $this->get($idBarco);
+    
+        } catch (Exception $e) {
+            handleException($e);
+        }
+    }
+    
+
+    /**
+     * Actualizar barco
+     */
+  
+
+    /**
+     * Eliminar barco
+     */
+    public function delete($id)
+    {
+        try {
+            $sql = "DELETE FROM barcos WHERE ID = $id";
+
+            return $this->enlace->executeSQL_DML($sql);
+        } catch (Exception $e) {
+            handleException($e);
+        }
+    }
 }

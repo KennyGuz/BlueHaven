@@ -44,7 +44,7 @@ export function DetailHabitacion() {
       {data && (
         <Grid container spacing={2}>
           <Grid item xs={12} md={5}>
-            {/* Si las habitaciones tienen imágenes */}
+            {}
             {data.imagen && (
               <Box
                 component="img"
@@ -75,7 +75,7 @@ export function DetailHabitacion() {
               <Box fontWeight="bold" display="inline">Tamaño:</Box> {data.Tamano}
             </Typography>
 
-            {/* Si hay comodidades o características */}
+            {}
             {data.caracteristicas && data.caracteristicas.length > 0 && (
               <Typography component="span" variant="subtitle1">
                 <Box fontWeight="bold">Características:</Box>
@@ -103,7 +103,7 @@ export function DetailHabitacion() {
               variant="contained"
               color="primary"
               sx={{ mt: 3 }}
-              onClick={() => navigate("/habitacion")} // Redirige al listado
+              onClick={() => navigate("/habitacion")} 
             >
               Volver al Listado
             </Button>
